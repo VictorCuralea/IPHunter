@@ -11,7 +11,7 @@ def read_ips_from_file(file_path):
 def print_and_log(message, output_file):
     print(message)
     with open(output_file, 'a') as output:
-        output.write(message + '\n')
+        os.write(output.fileno(), (message + '\n').encode())
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Acquire specific Elastic IP addresses in AWS")
