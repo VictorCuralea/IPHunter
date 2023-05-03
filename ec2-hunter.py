@@ -11,8 +11,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Acquire specific Elastic IP addresses in AWS")
     parser.add_argument("region", help="AWS Region to use")
     parser.add_argument("ip_file", help="File containing IP addresses, one per line")
-    parser.add_argument("aws_access_key_id", help="Your AWS Access Key ID")
-    parser.add_argument("aws_secret_access_key", help="Your AWS Secret Access Key")
+    parser.add_argument("AWSAccessKeyId", help="Your AWS access key ID")
+    parser.add_argument("AWSSecretKey", help="Your AWS secret access key")
     args = parser.parse_args(sys.argv[1:])
 
     found = False
@@ -21,8 +21,8 @@ if __name__ == "__main__":
     # connect to ec2 service with provided keys
     ecc2 = boto3.client(
         "ec2",
-        aws_access_key_id=args.aws_access_key_id,
-        aws_secret_access_key=args.aws_secret_access_key,
+        aws_access_key_id=args.AWSAccessKeyId,
+        aws_secret_access_key=args.AWSSecretKey,
         region_name=args.region
     )
 
@@ -35,6 +35,7 @@ if __name__ == "__main__":
             found = True
             print("Acquired IP {0}".format(address))
         else:
+            print("Generated IP {0} does not match desired IPs. Releasing...".format(address))
             ecc2.release_address(AllocationId=allocation_id)
 
             # make sure to get new addresses
