@@ -9,10 +9,10 @@ def read_ips_from_file(file_path):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Acquire specific Elastic IP addresses in AWS")
-    parser.add_argument("region", help="AWS Region to use")
-    parser.add_argument("ip_file", help="File containing IP addresses, one per line")
-    parser.add_argument("AWSAccessKeyId", help="Your AWS access key ID")
-    parser.add_argument("AWSSecretKey", help="Your AWS secret access key")
+    parser.add_argument("-region", dest="region", help="AWS Region to use", required=True)
+    parser.add_argument("-ips", dest="ip_file", help="File containing IP addresses, one per line", required=True)
+    parser.add_argument("-awsid", dest="AWSAccessKeyId", help="Your AWS access key ID", required=True)
+    parser.add_argument("-awssecret", dest="AWSSecretKey", help="Your AWS secret access key", required=True)
     args = parser.parse_args(sys.argv[1:])
 
     found = False
