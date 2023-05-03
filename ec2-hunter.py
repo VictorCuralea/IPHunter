@@ -8,6 +8,11 @@ def read_ips_from_file(file_path):
     with open(file_path) as f:
         return [line.strip() for line in f.readlines()]
 
+def print_and_log(message, output_file):
+    print(message)
+    with open(output_file, 'a') as output:
+        output.write(message + '\n')
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Acquire specific Elastic IP addresses in AWS")
     parser.add_argument("-region", dest="region", help="AWS Region to use", required=True)
@@ -28,25 +33,18 @@ if __name__ == "__main__":
         region_name=args.region
     )
 
-    # Redirect stdout to the output file
-    with open(args.output_file, 'a') as output:
-        sys.stdout = output
+    # acquiring Elastic IP and release it until we acquire specific IP
+    while not found:
+        allocation = ecc2.allocate_address(Domain="vpc")
+        address = allocation["PublicIp"]
+        allocation_id = allocation["AllocationId"]
+        if address in mon_ips:
+            found = True
+            print_and_log("Acquired IP {0}".format(address), args.output_file)
+            print_and_log("Found IP: {0}".format(address), args.output_file)
+        else:
+            print_and_log("Generated IP {0} does not match desired IPs. Releasing...".format(address), args.output_file)
+            ecc2.release_address(AllocationId=allocation_id)
 
-        # acquiring Elastic IP and release it until we acquire specific IP
-        while not found:
-            allocation = ecc2.allocate_address(Domain="vpc")
-            address = allocation["PublicIp"]
-            allocation_id = allocation["AllocationId"]
-            if address in mon_ips:
-                found = True
-                print("Acquired IP {0}".format(address))
-                print("Found IP: {0}".format(address))
-            else:
-                print("Generated IP {0} does not match desired IPs. Releasing...".format(address))
-                ecc2.release_address(AllocationId=allocation_id)
-
-                # make sure to get new addresses
-                time.sleep(60)
-
-    # Reset stdout back to the console
-    sys.stdout = sys.__stdout__
+            # make sure to get new addresses
+            time.sleep(60)
