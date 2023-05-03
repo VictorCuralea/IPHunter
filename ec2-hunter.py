@@ -2,6 +2,7 @@ import time
 import boto3
 import argparse
 import sys
+import os
 
 def read_ips_from_file(file_path):
     with open(file_path) as f:
@@ -13,6 +14,7 @@ if __name__ == "__main__":
     parser.add_argument("-ips", dest="ip_file", help="File containing IP addresses, one per line", required=True)
     parser.add_argument("-awsid", dest="AWSAccessKeyId", help="Your AWS access key ID", required=True)
     parser.add_argument("-awssecret", dest="AWSSecretKey", help="Your AWS secret access key", required=True)
+    parser.add_argument("-o", dest="output_file", help="Output file to store the results", required=True)
     args = parser.parse_args(sys.argv[1:])
 
     found = False
@@ -26,17 +28,25 @@ if __name__ == "__main__":
         region_name=args.region
     )
 
-    # acquiring Elastic IP and release it until we acquire specific IP
-    while not found:
-        allocation = ecc2.allocate_address(Domain="vpc")
-        address = allocation["PublicIp"]
-        allocation_id = allocation["AllocationId"]
-        if address in mon_ips:
-            found = True
-            print("Acquired IP {0}".format(address))
-        else:
-            print("Generated IP {0} does not match desired IPs. Releasing...".format(address))
-            ecc2.release_address(AllocationId=allocation_id)
+    # Redirect stdout to the output file
+    with open(args.output_file, 'a') as output:
+        sys.stdout = output
 
-            # make sure to get new addresses
-            time.sleep(60)
+        # acquiring Elastic IP and release it until we acquire specific IP
+        while not found:
+            allocation = ecc2.allocate_address(Domain="vpc")
+            address = allocation["PublicIp"]
+            allocation_id = allocation["AllocationId"]
+            if address in mon_ips:
+                found = True
+                print("Acquired IP {0}".format(address))
+                print("Found IP: {0}".format(address))
+            else:
+                print("Generated IP {0} does not match desired IPs. Releasing...".format(address))
+                ecc2.release_address(AllocationId=allocation_id)
+
+                # make sure to get new addresses
+                time.sleep(60)
+
+    # Reset stdout back to the console
+    sys.stdout = sys.__stdout__
