@@ -11,6 +11,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Acquire specific Elastic IP addresses in AWS")
     parser.add_argument("region", help="AWS Region to use")
     parser.add_argument("ip_file", help="File containing IP addresses, one per line")
+    parser.add_argument("aws_access_key_id", help="Your AWS Access Key ID")
+    parser.add_argument("aws_secret_access_key", help="Your AWS Secret Access Key")
     args = parser.parse_args(sys.argv[1:])
 
     found = False
@@ -19,6 +21,8 @@ if __name__ == "__main__":
     # connect to ec2 service with provided keys
     ecc2 = boto3.client(
         "ec2",
+        aws_access_key_id=args.aws_access_key_id,
+        aws_secret_access_key=args.aws_secret_access_key,
         region_name=args.region
     )
 
